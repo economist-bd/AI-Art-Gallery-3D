@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Art Gallery 3D</title>
+    
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1040/1040243.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #e94560;
+            --bg: #1a1a2e;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        /* 3D Header */
+        header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(22,33,62,0.9), transparent);
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 5px 15px rgba(233, 69, 96, 0.5);
+        }
+
+        /* 3D Card Grid */
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px;
+            perspective: 1000px;
+        }
+
+        /* The 3D Card */
+        .art-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 15px;
+            position: relative;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            transform-style: preserve-3d;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .art-card:hover {
+            transform: translateY(-10px) rotateX(5deg);
+            box-shadow: 0 20px 40px rgba(233, 69, 96, 0.3);
+            border-color: var(--primary);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 250px;
+            border-radius: 15px;
+            overflow: hidden;
+            transform: translateZ(20px); /* Pop out effect */
+            position: relative;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .art-card:hover .card-image img {
+            transform: scale(1.1);
+        }
+
+        .card-content {
+            margin-top: 15px;
+            transform: translateZ(30px); /* Text pops out more */
+        }
+
+        .prompt-box {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #ddd;
+            margin-top: 10px;
+            border-left: 3px solid var(--primary);
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        .copy-btn:active { transform: scale(0.95); }
+
+        /* Floating Admin Button */
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 10px 25px rgba(233, 69, 96, 0.6);
+            cursor: pointer;
+            z-index: 1000;
+            transition: 0.3s;
+        }
+        .fab:hover { transform: rotate(90deg) scale(1.1); }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: #16213e;
+            padding: 25px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid var(--primary);
+            transform: scale(0.8);
+            animation: popIn 0.3s forwards;
+        }
+
+        @keyframes popIn { to { transform: scale(1); } }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-family: inherit;
+        }
+
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-save { flex: 1; background: var(--primary); border: 0; padding: 10px; border-radius: 8px; color: white; }
+        .btn-close { flex: 1; background: #333; border: 0; padding: 10px; border-radius: 8px; color: white; }
+
+        /* Notification */
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: #4caf50; color: white; padding: 10px 20px;
+            border-radius: 30px; display: none; z-index: 3000;
+            font-size: 0.9rem; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><i class="fas fa-cube"></i> AI Gallery 3D</h1>
+    </header>
+
+    <div class="gallery-container" id="gallery">
+        </div>
+
+    <div class="fab" onclick="openModal()"><i class="fas fa-plus"></i></div>
+
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:15px; color:var(--primary)">নতুন কার্ড যোগ করুন</h3>
+            <input type="text" id="imgUrl" placeholder="ছবির ডাইরেক্ট লিঙ্ক দিন...">
+            <textarea id="promptTxt" rows="4" placeholder="প্রম্পট লিখুন..."></textarea>
+            <div class="btn-group">
+                <button class="btn-close" onclick="closeModal()">বন্ধ করুন</button>
+                <button class="btn-save" onclick="saveCard()">সেভ করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">কপি করা হয়েছে!</div>
+
+    <script>
+        // ডিফল্ট ডাটা (যদি লোকালে কিছু না থাকে)
+        const defaultData = [
+            {
+                image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                prompt: "A futuristic cyberpunk city with neon lights, raining night, 8k resolution, cinematic lighting."
+            },
+            {
+                image: "https://images.unsplash.com/photo-1635322966219-b75ed372eb01?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+                prompt: "3D render of a cute astronaut cat floating in space galaxy, vibrant colors, pixar style."
+            }
+        ];
+
+        // অ্যাপ লোড হলে ডাটা দেখাবে
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGallery();
+            registerSW();
+        });
+
+        function renderGallery() {
+            const container = document.getElementById('gallery');
+            container.innerHTML = '';
+            
+            // লোকাল স্টোরেজ থেকে ডাটা আনা অথবা ডিফল্ট ব্যবহার করা
+            let cards = JSON.parse(localStorage.getItem('aiCards')) || defaultData;
+
+            cards.forEach(card => {
+                const cardHtml = `
+                    <div class="art-card">
+                        <div class="card-image">
+                            <img src="${card.image}" alt="AI Art" loading="lazy">
+                        </div>
+                        <div class="card-content">
+                            <div class="prompt-box">${card.prompt}</div>
+                            <button class="copy-btn" onclick="copyPrompt('${card.prompt}')">
+                                <i class="fas fa-copy"></i> প্রম্পট কপি করুন
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+
+        // অ্যাডমিন ফাংশন
+        function openModal() { document.getElementById('addModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+
+        function saveCard() {
+            const url = document.getElementById('imgUrl').value;
+            const txt = document.getElementById('promptTxt').value;
+
+            if(url && txt) {
+                let cards = JSON.parse(localStorage.getItem('aiCards')) || defaultData;
+                cards.unshift({ image: url, prompt: txt }); // নতুন কার্ড সবার আগে
+                localStorage.setItem('aiCards', JSON.stringify(cards));
+                
+                renderGallery();
+                closeModal();
+                showToast("সফলভাবে যোগ করা হয়েছে!");
+                
+                // ইনপুট ক্লিয়ার
+                document.getElementById('imgUrl').value = '';
+                document.getElementById('promptTxt').value = '';
+            } else {
+                alert("দয়া করে ছবি এবং প্রম্পট দিন!");
+            }
+        }
+
+        // প্রম্পট কপি ফাংশন
+        function copyPrompt(text) {
+            navigator.clipboard.writeText(text);
+            showToast("প্রম্পট কপি করা হয়েছে!");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+
+        // Service Worker Registration for PWA
+        function registerSW() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('App Installed Ready'))
+                .catch(err => console.log('SW Fail', err));
+            }
+        }
+    </script>
+</body>
+</html>
