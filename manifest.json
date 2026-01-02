@@ -1,0 +1,21 @@
+{
+    "name": "AI 3D Art Gallery",
+    "short_name": "AI Gallery",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#1a1a2e",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/1040/1040243.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://cdn-icons-png.flaticon.com/512/1040/1040243.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
